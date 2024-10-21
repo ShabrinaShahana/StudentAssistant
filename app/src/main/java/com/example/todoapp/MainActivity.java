@@ -1,5 +1,6 @@
 package com.example.todoapp;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,15 +28,17 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private FloatingActionButton mfab;
+    private List<Task> taskList;
 
     private TaskAdapter taskAdapter;
-    private List<Task> taskList;
-    private FirebaseFirestore firebaseFirestore;
     private Context context;
+
+    private TaskStore taskStore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(TAG, "onCreate");
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -43,46 +47,37 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        firebaseFirestore = FirebaseFirestore.getInstance();
+        taskStore = TaskStore.getInstance();
         recyclerView = findViewById(R.id.recyclerView);
         mfab = findViewById(R.id.fab);
 
         context = this;
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
-        // Set up RecyclerView
+        Log.i(TAG, "updateView");
         taskList = new ArrayList<>();
+        taskList.addAll(taskStore.getTasks("todo"));
         taskAdapter = new TaskAdapter(taskList, context);
-        recyclerView.setAdapter(taskAdapter);
-
-        // Load existing tasks
-        loadTasksFromFireStore();
-
-        mfab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Handle FAB click
-                AddNewTask.newInstance().show(getSupportFragmentManager(), AddNewTask.TAG);
+        taskStore.setUpdateListener(taskAdapter);
+        taskAdapter.setOnTaskCheckListener((position, isChecked) -> {
+            Log.i("Debug", "onTaskChecked => position: " + position + " isChecked: " + isChecked);
+            if (isChecked) {
+                taskStore.deleteTask("todo", taskList.get(position), () -> {
+                    taskList.clear();
+                    taskList.addAll(taskStore.getTasks("todo"));
+                    taskAdapter.notifyDataSetChanged();
+                });
             }
         });
+        recyclerView.setAdapter(taskAdapter);
+
+        mfab.setOnClickListener(view -> AddNewTask.newInstance().show(getSupportFragmentManager(), AddNewTask.TAG));
     }
 
-    public void loadTasksFromFireStore() {
-        firebaseFirestore.collection("tasks")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    taskList.clear(); // Clear the old data
-                    for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                        Task task = documentSnapshot.toObject(Task.class);
-                        if (task != null) { // Ensure the task object is not null
-                            taskList.add(task);
-                        }
-                    }
-                    taskAdapter.notifyDataSetChanged(); // Notify the adapter of data change
-                })
-                .addOnFailureListener(e -> {
-                    Log.w(TAG, "Error getting tasks", e);
-                    Toast.makeText(context, "Failed to load tasks", Toast.LENGTH_SHORT).show();
-                });
+    public void updateView() {
+        Log.i(TAG, "updateView");
+        taskList.clear();
+        taskList.addAll(taskStore.getTasks("todo"));
+        taskAdapter.notifyDataSetChanged();
     }
 }

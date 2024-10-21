@@ -4,6 +4,7 @@ public class Task {
     private String task;
     private String due;
     private int status;
+    private String documentId;
 
     public Task() {}
 
@@ -21,4 +22,7 @@ public class Task {
 
     public int getStatus() { return status; }
     public void setStatus(int status) { this.status = status; }
+
+    public void setDocumentId(String id) { documentId = id; }
+    public String getDocumentId() { return documentId; }
 }

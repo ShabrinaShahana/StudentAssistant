@@ -35,9 +35,9 @@ public class AddNewTask extends BottomSheetDialogFragment {
     private TextView setDueDate;
     private EditText taskEditText;
     private Button save_button;
-    private FirebaseFirestore firebaseFirestore;
     private Context context;
     private String dueDate = "";
+    private TaskStore taskStore;
 
     public static AddNewTask newInstance(){
         return new AddNewTask();
@@ -58,7 +58,7 @@ public class AddNewTask extends BottomSheetDialogFragment {
         taskEditText = view.findViewById(R.id.task_editText);
         save_button = view.findViewById(R.id.save_button);
 
-        firebaseFirestore = FirebaseFirestore.getInstance();
+        taskStore = TaskStore.getInstance();
 
         taskEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -124,20 +124,15 @@ public class AddNewTask extends BottomSheetDialogFragment {
                     Toast.makeText(context, "Task cannot be empty", Toast.LENGTH_SHORT).show();
                 }
                 else{
-                    Map<String, Object> taskMap = new HashMap<>();
-
-                    taskMap.put("task", task);
-                    taskMap.put("due", dueDate);
-                    taskMap.put("status", 0);
-
-                    firebaseFirestore.collection("tasks").add(taskMap).addOnSuccessListener(documentReference -> {
+                    Task todoTask = new Task();
+                    todoTask.setTask(task);
+                    todoTask.setDue(dueDate);
+                    todoTask.setStatus(0);
+                    taskStore.addTask("todo", todoTask, () -> {
                         Toast.makeText(context, "Task saved successfully", Toast.LENGTH_SHORT).show();
                         dismiss();
-                    }).addOnFailureListener(e -> {
-                        Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
                 }
-                dismiss();
             }
         });
     }
@@ -160,10 +155,9 @@ public class AddNewTask extends BottomSheetDialogFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.e(TAG, "onDestroyView");
         Activity activity = getActivity();
         if (activity instanceof MainActivity) {
-            ((MainActivity) getActivity()).loadTasksFromFireStore();
+            ((MainActivity) activity).updateView();
         }
     }
 }
