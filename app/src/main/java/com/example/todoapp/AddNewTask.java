@@ -131,13 +131,11 @@ public class AddNewTask extends BottomSheetDialogFragment {
                     taskMap.put("status", 0);
 
                     firebaseFirestore.collection("tasks").add(taskMap).addOnSuccessListener(documentReference -> {
-
                         Toast.makeText(context, "Task saved successfully", Toast.LENGTH_SHORT).show();
                         dismiss();
                     }).addOnFailureListener(e -> {
                         Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
-                    Log.i(TAG, "onSaveButtonClicked: " + firebaseFirestore.collection("tasks").get());
                 }
                 dismiss();
             }
@@ -156,6 +154,16 @@ public class AddNewTask extends BottomSheetDialogFragment {
         Activity activity = getActivity();
         if (activity instanceof OnDialogCloseListener){
             ((OnDialogCloseListener) activity).onDialogClose(dialog);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.e(TAG, "onDestroyView");
+        Activity activity = getActivity();
+        if (activity instanceof MainActivity) {
+            ((MainActivity) getActivity()).loadTasksFromFireStore();
         }
     }
 }
