@@ -86,53 +86,44 @@ public class AddNewTask extends BottomSheetDialogFragment {
             }
         });
 
-        setDueDate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Handle Set Due Date button click
-                Calendar calendar = Calendar.getInstance();
+        setDueDate.setOnClickListener(view1 -> {
+            // Handle Set Due Date button click
+            Calendar calendar = Calendar.getInstance();
 
-                int MONTH = calendar.get(Calendar.MONTH);
-                int YEAR = calendar.get(Calendar.YEAR);
-                int DAY = calendar.get(Calendar.DATE);
+            int MONTH = calendar.get(Calendar.MONTH);
+            int YEAR = calendar.get(Calendar.YEAR);
+            int DAY = calendar.get(Calendar.DATE);
 
-                // You can open a calendar or date picker dialog here
-                // For example, using a DatePickerDialog:
-                // new DatePickerDialog(requireContext(), ...).show();
+            // You can open a calendar or date picker dialog here
+            // For example, using a DatePickerDialog:
+            // new DatePickerDialog(requireContext(), ...).show();
 
-                DatePickerDialog datePickerDialog = new DatePickerDialog(context, new DatePickerDialog.OnDateSetListener() {
-                    @Override
-                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth){
+            DatePickerDialog datePickerDialog = new DatePickerDialog(context, (view11, year, month, dayOfMonth) -> {
 
-                        month = month + 1;
-                        String date = dayOfMonth + "/" + month + "/" + year;
-                        setDueDate.setText(date);
-                        dueDate = date;
+                month = month + 1;
+                String date = dayOfMonth + "/" + month + "/" + year;
+                setDueDate.setText(date);
+                dueDate = date;
 
-                    }
-                }, YEAR, MONTH, DAY);
-                datePickerDialog.show();
-            }
+            }, YEAR, MONTH, DAY);
+            datePickerDialog.show();
         });
 
-        save_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String task = taskEditText.getText().toString();
+        save_button.setOnClickListener(view12 -> {
+            String task = taskEditText.getText().toString();
 
-                if (task.isEmpty()){
-                    Toast.makeText(context, "Task cannot be empty", Toast.LENGTH_SHORT).show();
-                }
-                else{
-                    Task todoTask = new Task();
-                    todoTask.setTask(task);
-                    todoTask.setDue(dueDate);
-                    todoTask.setStatus(0);
-                    taskStore.addTask("todo", todoTask, () -> {
-                        Toast.makeText(context, "Task saved successfully", Toast.LENGTH_SHORT).show();
-                        dismiss();
-                    });
-                }
+            if (task.isEmpty()){
+                Toast.makeText(context, "Task cannot be empty", Toast.LENGTH_SHORT).show();
+            }
+            else{
+                Task todoTask = new Task();
+                todoTask.setTask(task);
+                todoTask.setDue(dueDate);
+                todoTask.setStatus(0);
+                taskStore.addTask("todo", todoTask, () -> {
+                    Toast.makeText(context, "Task saved successfully", Toast.LENGTH_SHORT).show();
+                    dismiss();
+                });
             }
         });
     }

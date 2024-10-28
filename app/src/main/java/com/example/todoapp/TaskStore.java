@@ -87,6 +87,7 @@ public class TaskStore {
                     Log.d(TAG, "Task successfully deleted!");
                     if (collection.equalsIgnoreCase("todo")) {
                         todoTasks.removeIf(t -> t.getDocumentId().equals(task.getDocumentId()));
+                        completedTasks.add(task);
                     } else {
                         completedTasks.removeIf(t -> t.getDocumentId().equals(task.getDocumentId()));
                     }
