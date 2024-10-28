@@ -1,11 +1,8 @@
 package com.example.todoapp;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -65,14 +62,10 @@ public class TaskStore {
                 .addOnSuccessListener(documentReference -> {
                     Log.d(TAG, "Task added with ID: " + documentReference.getId());
                     task.setDocumentId(documentReference.getId());
-                    if (collection.equalsIgnoreCase("todo")) {
-                        todoTasks.add(task);
-                    } else {
-                        completedTasks.add(task);
-                    }
+                    todoTasks.add(task);
                     taskUpdateListener.onTaskUpdated();
+                    listener.onTaskUpdated();
                 });
-        listener.onTaskUpdated();
     }
 
     public void setUpdateListener(TaskUpdateListener listener) {
@@ -85,33 +78,32 @@ public class TaskStore {
                 .delete()
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Task successfully deleted!");
-                    if (collection.equalsIgnoreCase("todo")) {
-                        todoTasks.removeIf(t -> t.getDocumentId().equals(task.getDocumentId()));
-                        completedTasks.add(task);
-                    } else {
-                        completedTasks.removeIf(t -> t.getDocumentId().equals(task.getDocumentId()));
-                    }
+                    todoTasks.removeIf(t -> t.getDocumentId().equals(task.getDocumentId()));
+                    completedTasks.add(task);
                     if (taskUpdateListener != null) taskUpdateListener.onTaskUpdated();
+                    if (listener != null) listener.onTaskUpdated();
                 })
                 .addOnFailureListener(e -> {
                     Log.w("TaskStore", "Error deleting task", e);
                 });
-        if (listener != null) listener.onTaskUpdated();
+
     }
 
-    public List<Task> getTasks(String collection) {
-        if (collection.equalsIgnoreCase("todo")) {
-            if (todoTasks.isEmpty()) {
-                return readTasks("todo");
-            }
-            return todoTasks;
-        } else {
-            if (completedTasks.isEmpty()) {
-                return readTasks("completed");
-            }
-            return completedTasks;
+    public List<Task> getCompletedTasks() {
+        for(int i = 0; i < completedTasks.size(); i += 1) {
+           Log.i("Debug", "Completed > " + completedTasks.get(i).toString());
         }
+        return completedTasks;
     }
+
+    public List<Task> getTodoTasks() {
+        for(int i = 0; i < todoTasks.size(); i += 1) {
+            Log.i("Debug", "todo > " + todoTasks.get(i).toString());
+        }
+        return todoTasks;
+    }
+
+
 
     public interface TaskUpdateListener {
         void onTaskUpdated();

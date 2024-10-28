@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.checkbox.MaterialCheckBox;
@@ -21,22 +23,17 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     private final Context context;
     private OnTaskCheckListener onTaskCheckListener;
     private TaskStore taskStore;
+    private String collection;
 
-
-    public void updateItemStatus(int position, Task task) {
-        taskList.set(position, task);
-    }
-
-    public List<Task> getTaskList() {
-        return taskList;
-    }
 
     @Override
     public void onTaskUpdated() {
         taskList.clear();
-        taskList.addAll(taskStore.getTasks("todo"));
+        if (collection.equalsIgnoreCase("todo")) taskList.addAll(taskStore.getTodoTasks());
+        else taskList.addAll(taskStore.getCompletedTasks());
         notifyDataSetChanged();
     }
+
 
     public interface OnTaskCheckListener {
         void onTaskChecked(int position, boolean isChecked);
@@ -46,24 +43,22 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         this.onTaskCheckListener = listener;
     }
 
-    public TaskAdapter(List<Task> taskList, Context context) {
+    public TaskAdapter(List<Task> taskList, Context context, String collection) {
         this.taskList = taskList;
         this.context = context;
         this.taskStore = TaskStore.getInstance();
+        this.collection = collection;
     }
 
     @NonNull
     @Override
     public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-//        Log.i("MainActivity", "onCreateViewHolder");
         View view = LayoutInflater.from(context).inflate(R.layout.each_task, parent, false);
         return new TaskViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
-
-//        Log.i("MainActivity", "onBindViewHolder");
         Task task = taskList.get(position);
         if (task != null) {
             holder.taskTitleView.setText(task.getTask());

@@ -87,19 +87,13 @@ public class AddNewTask extends BottomSheetDialogFragment {
         });
 
         setDueDate.setOnClickListener(view1 -> {
-            // Handle Set Due Date button click
             Calendar calendar = Calendar.getInstance();
 
             int MONTH = calendar.get(Calendar.MONTH);
             int YEAR = calendar.get(Calendar.YEAR);
             int DAY = calendar.get(Calendar.DATE);
 
-            // You can open a calendar or date picker dialog here
-            // For example, using a DatePickerDialog:
-            // new DatePickerDialog(requireContext(), ...).show();
-
             DatePickerDialog datePickerDialog = new DatePickerDialog(context, (view11, year, month, dayOfMonth) -> {
-
                 month = month + 1;
                 String date = dayOfMonth + "/" + month + "/" + year;
                 setDueDate.setText(date);

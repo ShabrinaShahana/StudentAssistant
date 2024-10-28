@@ -25,4 +25,9 @@ public class Task {
 
     public void setDocumentId(String id) { documentId = id; }
     public String getDocumentId() { return documentId; }
+
+    @Override
+    public String toString() {
+        return "Task [ name: " + task + ", document id: " + documentId + " status: " + status;
+    }
 }

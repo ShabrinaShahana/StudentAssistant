@@ -14,8 +14,11 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -25,15 +28,9 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-
-    private RecyclerView recyclerView;
-    private FloatingActionButton mfab;
-    private List<Task> taskList;
-
-    private TaskAdapter taskAdapter;
-    private Context context;
-
-    private TaskStore taskStore;
+    TaskPagerAdapter fragmentAdapter;
+    private ViewPager2 viewPager;
+    private TabLayout tabLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,37 +44,30 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        taskStore = TaskStore.getInstance();
-        recyclerView = findViewById(R.id.recyclerView);
-        mfab = findViewById(R.id.fab);
+        viewPager = findViewById(R.id.viewPager);
+        tabLayout = findViewById(R.id.tabLayout);
+        FloatingActionButton fab = findViewById(R.id.fab);
 
-        context = this;
-        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        fragmentAdapter = new TaskPagerAdapter(this);
+        viewPager.setAdapter(fragmentAdapter);
 
-        Log.i(TAG, "updateView");
-        taskList = new ArrayList<>();
-        taskList.addAll(taskStore.getTasks("todo"));
-        taskAdapter = new TaskAdapter(taskList, context);
-        taskStore.setUpdateListener(taskAdapter);
-        taskAdapter.setOnTaskCheckListener((position, isChecked) -> {
-            Log.i("Debug", "onTaskChecked => position: " + position + " isChecked: " + isChecked);
-            if (isChecked) {
-                taskStore.deleteTask("todo", taskList.get(position), () -> {
-                    taskList.clear();
-                    taskList.addAll(taskStore.getTasks("todo"));
-                    taskAdapter.notifyDataSetChanged();
-                });
+        // Attach TabLayout with ViewPager2
+        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
+            if (position == 0) {
+                tab.setText("Todo");
+            } else if (position == 1) {
+                tab.setText("Completed");
             }
-        });
-        recyclerView.setAdapter(taskAdapter);
-
-        mfab.setOnClickListener(view -> AddNewTask.newInstance().show(getSupportFragmentManager(), AddNewTask.TAG));
+        }).attach();
+        fab.setOnClickListener(view -> AddNewTask.newInstance().show(getSupportFragmentManager(), AddNewTask.TAG));
     }
 
     public void updateView() {
         Log.i(TAG, "updateView");
-        taskList.clear();
-        taskList.addAll(taskStore.getTasks("todo"));
-        taskAdapter.notifyDataSetChanged();
+        TodoFragment todoFragment = (TodoFragment) getSupportFragmentManager().findFragmentByTag("f" + viewPager.getCurrentItem());
+
+        if (todoFragment != null) {
+            todoFragment.updateView();
+        }
     }
 }
